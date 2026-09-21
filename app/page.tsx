@@ -25,6 +25,12 @@ export default function Page() {
       >
         Buka Demo Task (Hari 1) &rarr;
       </Link>
+      <Link
+        href="/tasks-demo-2"
+        className="mt-2.5 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+      >
+        Buka Demo Task (Hari 2) &rarr;
+      </Link>
     </main>
   );
 }

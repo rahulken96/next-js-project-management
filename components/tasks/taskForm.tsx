@@ -1,7 +1,7 @@
 // components/tasks/TaskForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface TaskFormProps {
   onAddTask: (title: string, priority: "LOW" | "MEDIUM" | "HIGH") => void;
@@ -9,8 +9,14 @@ interface TaskFormProps {
 
 export function TaskForm({ onAddTask }: TaskFormProps) {
   const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("HIGH");
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [error, setError] = useState("");
+
+  // Menggunakan useRef untuk mengakses elemen DOM input tanpa memicu re-render
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Autofocus saat komponen pertama kali mount
+  useEffect(() => { inputRef.current?.focus() }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +33,9 @@ export function TaskForm({ onAddTask }: TaskFormProps) {
     setTitle("");
     setPriority("MEDIUM");
     setError("");
+
+    // Kembalikan fokus kursor ke input secara otomatis
+    inputRef.current?.focus();
   };
 
   return (
@@ -35,13 +44,14 @@ export function TaskForm({ onAddTask }: TaskFormProps) {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
           <input
+            ref={inputRef}
             type="text"
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
               if (error) setError("");
             }}
-            placeholder="Misal: Siapkan rancangan database..."
+            placeholder="Ketik task baru dan tekan Enter..."
             className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {error && <p className="text-xs text-rose-600 mt-1">{error}</p>}
@@ -59,7 +69,7 @@ export function TaskForm({ onAddTask }: TaskFormProps) {
 
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition cursor-pointer"
         >
           Tambah
         </button>
