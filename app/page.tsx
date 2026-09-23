@@ -31,6 +31,12 @@ export default function Page() {
       >
         Buka Demo Task (Hari 2 & 3) &rarr;
       </Link>
+      <Link
+        href="/projects"
+        className="mt-2.5 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+      >
+        Buka Dashboard Projects (Hari 4 & 5 ) &rarr;
+      </Link>
     </main>
   );
 }
