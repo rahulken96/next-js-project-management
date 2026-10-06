@@ -1,7 +1,7 @@
 // app/(dashboard)/projects/page.tsx
 import Link from "next/link";
 import { Metadata } from "next";
-import { getProjectsAction } from "@/app/actions/projectActions";
+import { getAllProjects } from "@/server/services/projectService";
 import { CreateProjectModal } from "@/components/projects/createModalProject";
 
 export const metadata: Metadata = {
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsPage() {
-    // Fetch data langsung di Server Component (tanpa fetch HTTP overhead)
-    const projects = await getProjectsAction();
+    // Fetch data langsung dari PostgreSQL melalui Prisma Service
+    const projects = await getAllProjects();
 
     return (
         <div>
@@ -25,7 +25,7 @@ export default async function ProjectsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {projects.length === 0 ? (
+                {projects.length == 0 ? (
                     <div className="col-span-full text-center py-12 bg-white border border-dashed border-slate-300 rounded-xl">
                         <p className="text-sm text-slate-500 font-medium">Belum ada project yang dibuat.</p>
                         <p className="text-xs text-slate-400 mt-1">Klik tombol di atas untuk membuat project pertamamu.</p>
@@ -44,8 +44,8 @@ export default async function ProjectsPage() {
                                 {proj.description || "Tidak ada deskripsi."}
                             </p>
                             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                                <span className="font-mono">{proj.id}</span>
-                                <span>Owner: {proj.ownerId}</span>
+                                <span>{proj._count.tasks} tasks</span>
+                                <span>Owner: {proj.owner.name}</span>
                             </div>
                         </Link>
                     ))
