@@ -2,28 +2,62 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createTask, toggleTaskStatus, deleteTask } from "@/server/services/taskService";
-import { TaskPriority } from "@prisma/client";
+import { db } from "@/lib/db";
+import { toggleTaskStatus, deleteTask } from "@/server/services/taskService";
+import { createTaskSchema } from "@/lib/validations/taskSchema";
+import { TaskPriority, TaskStatus } from "@prisma/client";
 import { ApiResult } from "@/types/api";
 
 export async function createTaskAction(
   projectId: string,
-  formData: FormData
+  rawData: unknown,
 ): Promise<ApiResult<{ id: string }>> {
-  const title = formData.get("title") as string;
-  const priority = (formData.get("priority") as TaskPriority) || TaskPriority.MEDIUM;
-  const assignedToId = (formData.get("assignedToId") as string) || null;
+  // 1. Dukung baik input FormData maupun plain object (dari React Hook Form)
+  const rawInput =
+    rawData instanceof FormData
+      ? Object.fromEntries(rawData.entries())
+      : rawData;
 
-  if (!title || title.trim().length < 3) {
-    return { success: false, error: "Judul task minimal 3 karakter." };
+  // 2. Validasi defensif di server menggunakan Zod
+  const parseResult = createTaskSchema.safeParse(rawInput);
+
+  if (!parseResult.success) {
+    // Ekstrak pesan error per-field menjadi format rapi
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    return {
+      success: false,
+      error: "Input tidak valid. Periksa kembali form Anda.",
+      fieldErrors,
+    };
   }
 
+  const { title, description, priority, dueDate } = parseResult.data;
+
   try {
-    const task = await createTask(projectId, title.trim(), priority, assignedToId);
+    const task = await db.task.create({
+      data: {
+        projectId,
+        title,
+        description: description || null,
+        priority: priority as TaskPriority,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        status: TaskStatus.TODO,
+      },
+    });
+
     revalidatePath(`/projects/${projectId}`);
-    return { success: true, data: { id: task.id }, message: "Task berhasil ditambahkan." };
+
+    return {
+      success: true,
+      data: { id: task.id },
+      message: "Task berhasil dibuat!",
+    };
   } catch (error) {
-    return { success: false, error: "Gagal membuat task di database." };
+    console.error("Database Error:", error);
+    return {
+      success: false,
+      error: "Terjadi kesalahan internal server saat menyimpan data.",
+    };
   }
 }
 

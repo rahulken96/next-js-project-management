@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { getProjectById } from "@/server/services/projectService";
-import { createTaskAction } from "@/app/actions/taskActions";
 import { TaskRow } from "@/components/tasks/taksRow";
+import { ValidatedTaskForm } from "@/components/tasks/validatedForm";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -29,12 +29,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Server Action inline untuk submit task baru
-  async function handleCreateTask(formData: FormData) {
-    "use server";
-    await createTaskAction(id, formData);
-  }
-
   return (
     <div className="max-w-4xl">
       <div className="mb-6">
@@ -50,34 +44,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Form Tambah Task Baru */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-6">
-        <h3 className="text-sm font-semibold text-slate-800 mb-3">Tambah Task Baru ke Project</h3>
-        <form action={handleCreateTask} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            name="title"
-            required
-            placeholder="Tulis judul task baru..."
-            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            name="priority"
-            defaultValue="MEDIUM"
-            className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition cursor-pointer"
-          >
-            + Tambah Task
-          </button>
-        </form>
-      </div>
+      {/* Form Validated (Zod + React Hook Form) */}
+      <ValidatedTaskForm projectId={project.id} />
 
       {/* List Task Live dari PostgreSQL */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
