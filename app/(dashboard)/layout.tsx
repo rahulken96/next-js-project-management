@@ -1,12 +1,18 @@
-// app/(dashboard)/layout.tsx
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const user = await getCurrentUser();
+
     const navItems = [
         { label: "Overview", href: "/dashboard" },
         { label: "Projects", href: "/projects" },
         { label: "Tasks", href: "/tasks" },
     ];
+
+    const initials = user?.name
+        ? user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+        : "US";
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
@@ -33,12 +39,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 <div className="p-4 border-t border-slate-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-semibold text-slate-700">
-                            AD
+                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
+                            {initials}
                         </div>
-                        <div className="text-xs">
-                            <p className="font-semibold text-slate-800">Admin User</p>
-                            <p className="text-slate-500">admin@project-next.js</p>
+                        <div className="text-xs truncate">
+                            <p className="font-semibold text-slate-800 truncate">{user?.name || "User"}</p>
+                            <p className="text-slate-500 truncate">{user?.email || "user@projecthq.local"}</p>
                         </div>
                     </div>
                 </div>

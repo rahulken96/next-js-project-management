@@ -1,5 +1,6 @@
 // prisma/seed.ts
 import { PrismaClient, UserRole, TaskPriority, TaskStatus } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -12,12 +13,15 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
 
+  // Hash valid untuk 'password123'
+  const passwordHash = await bcrypt.hash("password123", 10);
+
   // 2. Buat User Admin & Member
   const admin = await prisma.user.create({
     data: {
       name: "Admin Workspace",
       email: "admin@projecthq.local",
-      passwordHash: "$2a$12$e0MYzX1WzE1nL9Nq2Gg/3OzpLqU2s8n3kFq0w9jX4rT7sP1v5iH.S", // hash dummy 'password123'
+      passwordHash,
       role: UserRole.ADMIN,
     },
   });
@@ -26,7 +30,7 @@ async function main() {
     data: {
       name: "Budi Developer",
       email: "budi@projecthq.local",
-      passwordHash: "$2a$12$e0MYzX1WzE1nL9Nq2Gg/3OzpLqU2s8n3kFq0w9jX4rT7sP1v5iH.S",
+      passwordHash,
       role: UserRole.MEMBER,
     },
   });
