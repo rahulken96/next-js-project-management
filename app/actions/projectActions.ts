@@ -4,6 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { ApiResult } from "@/types/api";
 import { createProject, getAllProjects } from "@/server/services/projectService";
+import { requireAuth, requireProjectOwner, ForbiddenError, UnauthorizedError } from "@/server/guards/authGuards";
 import { db } from "@/lib/db";
 
 export async function createProjectAction(formData: FormData): Promise<ApiResult<{ id: string }>> {
@@ -48,5 +49,24 @@ export async function createProjectAction(formData: FormData): Promise<ApiResult
 
 export async function getProjectsAction() {
     return await getAllProjects();
+}
+
+export async function deleteProjectSecureAction(projectId: string): Promise<ApiResult<void>> {
+    try {
+        // KUNCI KEAMANAN MUTLAK: Periksa hak akses owner sebelum delete
+        await requireProjectOwner(projectId);
+
+        await db.project.delete({
+            where: { id: projectId },
+        });
+
+        revalidatePath("/projects");
+        return { success: true, data: undefined, message: "Project berhasil dihapus." };
+    } catch (error) {
+        if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: "Gagal menghapus project." };
+    }
 }
 

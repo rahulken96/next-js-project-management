@@ -7,11 +7,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createTaskSchema, CreateTaskInput } from "@/lib/validations/taskSchema";
 import { createTaskAction } from "@/app/actions/taskActions";
 
-interface ValidatedTaskFormProps {
-    projectId: string;
+interface Member {
+    user: { id: string; name: string };
 }
 
-export function ValidatedTaskForm({ projectId }: ValidatedTaskFormProps) {
+interface ValidatedTaskFormProps {
+    projectId: string;
+    members: Member[];
+}
+
+export function ValidatedTaskForm({ projectId, members }: ValidatedTaskFormProps) {
     const [serverError, setServerError] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -28,6 +33,7 @@ export function ValidatedTaskForm({ projectId }: ValidatedTaskFormProps) {
             description: "",
             priority: "MEDIUM",
             dueDate: "",
+            assignedToId: "",
         },
     });
 
@@ -119,6 +125,21 @@ export function ValidatedTaskForm({ projectId }: ValidatedTaskFormProps) {
                         />
                         {errors.dueDate && <p className="text-xs text-rose-600 mt-1">{errors.dueDate.message}</p>}
                     </div>
+                </div>
+
+                <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Assign To</label>
+                    <select
+                        {...register("assignedToId")}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">— Tidak Diassign —</option>
+                        {members.map((m) => (
+                            <option key={m.user.id} value={m.user.id}>
+                                {m.user.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="pt-2 flex justify-end">

@@ -4,6 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { toggleTaskStatus, deleteTask } from "@/server/services/taskService";
+import { requireProjectMember, ForbiddenError, UnauthorizedError } from "@/server/guards/authGuards";
 import { createTaskSchema } from "@/lib/validations/taskSchema";
 import { TaskPriority, TaskStatus } from "@prisma/client";
 import { ApiResult } from "@/types/api";
@@ -31,7 +32,7 @@ export async function createTaskAction(
     };
   }
 
-  const { title, description, priority, dueDate } = parseResult.data;
+  const { title, description, priority, dueDate, assignedToId } = parseResult.data;
 
   try {
     const task = await db.task.create({
@@ -42,6 +43,7 @@ export async function createTaskAction(
         priority: priority as TaskPriority,
         dueDate: dueDate ? new Date(dueDate) : null,
         status: TaskStatus.TODO,
+        assignedToId: assignedToId || null,
       },
     });
 
@@ -83,6 +85,28 @@ export async function deleteTaskAction(
     revalidatePath(`/projects/${projectId}`);
     return { success: true, data: undefined };
   } catch {
+    return { success: false, error: "Gagal menghapus task." };
+  }
+}
+
+export async function deleteSecureTaskAction(
+  taskId: string,
+  projectId: string
+): Promise<ApiResult<void>> {
+  try {
+    // Pastikan pemanggil adalah member atau owner dari project ini
+    await requireProjectMember(projectId);
+
+    await db.task.delete({
+      where: { id: taskId },
+    });
+
+    revalidatePath(`/projects/${projectId}`);
+    return { success: true, data: undefined };
+  } catch (error) {
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      return { success: false, error: error.message };
+    }
     return { success: false, error: "Gagal menghapus task." };
   }
 }

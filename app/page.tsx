@@ -16,26 +16,14 @@ export default function Page() {
   return (
     <main className="min-h-screen p-8 bg-slate-50 text-slate-900 flex flex-col items-center justify-center">
       <h1 className="text-3xl font-bold mb-4">Project Management System</h1>
-      <p className="text-slate-600 mb-6">Sprint 14 Hari — React + Next.js Production-Grade</p>
+      {/* <p className="text-slate-600 mb-6"><i>Sprint 14 Hari — React + Next.js Production-Grade</i></p> */}
       
       {/* Komponen Link Next.js: Navigasi client-side instan (SPA) tanpa reload halaman penuh */}
-      <Link
-        href="/tasks-demo"
-        className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
-      >
-        Buka Demo Task (Hari 1) &rarr;
-      </Link>
-      <Link
-        href="/tasks-demo-2"
-        className="mt-2.5 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
-      >
-        Buka Demo Task (Hari 2 & 3) &rarr;
-      </Link>
       <Link
         href="/projects"
         className="mt-2.5 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
       >
-        Buka Dashboard Projects (Hari 4 & 5 ) &rarr;
+        Masuk/Daftar Dashboard
       </Link>
     </main>
   );

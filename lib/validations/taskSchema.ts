@@ -25,6 +25,8 @@ export const createTaskSchema = z.object({
         .refine((val) => !val || !isNaN(Date.parse(val)), {
             message: "Format tanggal tidak valid",
         }),
+
+    assignedToId: z.string().optional().nullable(),
 });
 
 // Inferensikan tipe data TypeScript langsung dari schema Zod
