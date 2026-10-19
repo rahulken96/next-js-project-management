@@ -1,0 +1,60 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: projecthq-app
+        restart: always
+        ports:
+            - "3000:3000"
+        environment:
+            - NODE_ENV=${NODE_ENV:-production}
+            - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/project_management?schema=public}
+            - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+            - AUTH_SECRET=${AUTH_SECRET}
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        networks:
+            - projecthq-net
+
+    postgres:
+        image: postgres:16-alpine
+        container_name: projecthq-postgres
+        restart: always
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: project_management
+        ports:
+            - "5432:5432"
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres -d project_management"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        networks:
+            - projecthq-net
+
+    redis:
+        image: redis:7-alpine
+        container_name: projecthq-redis
+        restart: always
+        ports:
+            - "6379:6379"
+        volumes:
+            - redisdata:/data
+        networks:
+            - projecthq-net
+
+volumes:
+    pgdata:
+    redisdata:
+
+networks:
+    projecthq-net:
+        driver: bridge
