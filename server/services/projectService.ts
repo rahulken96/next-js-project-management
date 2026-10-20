@@ -1,9 +1,17 @@
 // server/services/projectService.ts
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
+import { Prisma } from "@prisma/client";
 
 const CACHE_KEY_PROJECTS = "projects:list";
 const CACHE_TTL_SECONDS = 60; // 1 Menit
+
+export type ProjectWithDetails = Prisma.ProjectGetPayload<{
+  include: {
+    owner: { select: { id: true; name: true; email: true } };
+    _count: { select: { tasks: true; members: true } };
+  };
+}>;
 
 // Fungsi Invalidasi Cache
 export async function invalidateProjectsCache() {
@@ -15,13 +23,13 @@ export async function invalidateProjectsCache() {
   }
 }
 
-export async function getAllProjects() {
+export async function getAllProjects(): Promise<ProjectWithDetails[]> {
   // 1. Coba baca dari Redis
   try {
     const cached = await redis.get(CACHE_KEY_PROJECTS);
     if (cached) {
       console.log("⚡ [REDIS CACHE HIT]: Mengembalikan daftar project dari memory");
-      return JSON.parse(cached);
+      return JSON.parse(cached) as ProjectWithDetails[];
     }
   } catch (err) {
     console.warn("Bypass Redis membaca langsung PostgreSQL");
